@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * adonis-framework
  *
@@ -9,17 +7,21 @@
  * file that was distributed with this source code.
 */
 
-const requireAll = require('require-all')
-const _ = require('lodash')
-const util = require('../../lib/util')
+import { requireAll } from 'require-all'
+import * as _  from 'lodash'
+import { Util } from '../../lib/util'
+import { Helpers } from '../Helpers'
 
 /**
  * Manage configuration for an application by
  * reading all .js files from config directory.
  */
-class Config {
+export class Config {
 
-  constructor (Helpers) {
+  private config: any
+  private util: Util
+
+  constructor(Helpers: Helpers) {
     const configPath = Helpers.configPath()
     /**
      * @type {Object}
@@ -44,10 +46,10 @@ class Config {
    *
    * @public
    */
-  get (key, defaultValue) {
-    defaultValue = util.existy(defaultValue) ? defaultValue : null
+  get(key: string, defaultValue?: any): any {
+    defaultValue = this.util.existy(defaultValue) ? defaultValue : null
     const returnValue = _.get(this.config, key)
-    return util.existy(returnValue) ? returnValue : defaultValue
+    return this.util.existy(returnValue) ? returnValue : defaultValue
   }
 
   /**
@@ -63,9 +65,7 @@ class Config {
    *
    * @public
    */
-  set (key, value) {
+  set(key: string, value: any) {
     _.set(this.config, key, value)
   }
 }
-
-module.exports = Config

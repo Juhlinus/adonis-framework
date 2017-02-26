@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * adonis-framework
  *
@@ -8,9 +6,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
 */
+import * as crypto from 'crypto'
+import { Config } from '../Config'
+import { RuntimeException, InvalidArgumentException, HttpException }  from '../Exceptions'
 
-const crypto = require('crypto')
-const CE = require('../Exceptions')
+type Utf8AsciiBinaryEncoding = "utf8" | "ascii" | "binary"
 
 /**
  * Encrypt and decrypt values using nodeJs crypto, make
@@ -20,17 +20,19 @@ const CE = require('../Exceptions')
  * @class
  */
 class Encryption {
+  private appKey: string        
+  private algorithm: string
 
-  constructor (Config) {
+  constructor (Config: Config) {
     this.appKey = Config.get('app.appKey')
     this.algorithm = Config.get('app.encryption.algorithm', 'aes-256-cbc')
 
     if (!this.appKey) {
-      throw CE.RuntimeException.missingAppKey('App key needs to be specified in order to make use of Encryption')
+      throw RuntimeException.missingAppKey('App key needs to be specified in order to make use of Encryption', )
     }
 
     if (!this.supported(this.appKey, this.algorithm)) {
-      throw CE.RuntimeException.invalidEncryptionCipher()
+      throw RuntimeException.invalidEncryptionCipher()
     }
   }
 
@@ -41,7 +43,7 @@ class Encryption {
    * @param  {String}  cipher
    * @return {Boolean}
    */
-  supported (key, cipher) {
+  supported (key: string, cipher:string): boolean {
     key = key || ''
     cipher = cipher || ''
     return (cipher.toLowerCase() === 'aes-128-cbc' && key.length === 16) || (cipher.toLowerCase() === 'aes-256-cbc' && key.length === 32)
@@ -59,9 +61,9 @@ class Encryption {
    *
    * @public
    */
-  encrypt (value, encoding) {
+  encrypt (value: any, encoding: string): string {
     if (!value) {
-      throw CE.InvalidArgumentException.missingParameter('Could not encrypt the data')
+      throw InvalidArgumentException.missingParameter('Could not encrypt the data')
     }
 
     encoding = encoding || 'utf8'
@@ -74,15 +76,16 @@ class Encryption {
     // Once we have the encrypted value we will go ahead base64_encode the input
     // vector and create the MAC for the encrypted value so we can verify its
     // authenticity. Then, we'll JSON encode the data in a "payload" array.
-    const mac = this.hash(iv = this.base64Encode(iv), value)
-    const json = JSON.stringify({iv: iv, value: value, mac: mac})
+    let new_iv: string = iv.toString()
+    const mac = this.hash(new_iv = this.base64Encode(new_iv), value)
+    const json = JSON.stringify({iv: new_iv, value: value, mac: mac})
     return this.base64Encode(json)
   }
 
   /**
    * decrypts encrypted value
    *
-   * @param  {String} value - value to decrypt
+   * @param  {Mixed} value - value to decrypt
    * @param  {String} [encoding=utf8] encoding to be used for output value
    * @return {Mixed}
    *
@@ -91,10 +94,10 @@ class Encryption {
    *
    * @public
    */
-  decrypt (payload, encoding) {
+  decrypt (payload: any, encoding:Utf8AsciiBinaryEncoding): any {
     encoding = encoding || 'utf8'
     payload = this.getJsonPayload(payload)
-
+    
     const iv = this.base64Decode(payload.iv, true)
 
     const decipher = crypto.createDecipheriv(this.algorithm, this.appKey, iv)
@@ -102,7 +105,7 @@ class Encryption {
     decrypted += decipher.final(encoding)
 
     if (!decrypted) {
-      throw CE.RuntimeException.decryptFailed()
+      throw RuntimeException.decryptFailed()
     }
     return decrypted
   }
@@ -115,23 +118,23 @@ class Encryption {
    *
    * @public
    */
-  getJsonPayload (payload) {
+  getJsonPayload (payload: any): any {
     const json = this.base64Decode(payload)
     try {
       payload = JSON.parse(json)
     } catch (e) {
-      throw CE.RuntimeException.malformedJSON()
+      throw RuntimeException.malformedJSON()
     }
 
     // If the payload is not valid JSON or does not have the proper keys set we will
     // assume it is invalid and bail out of the routine since we will not be able
     // to decrypt the given value. We'll also check the MAC for this encryption.
     if (!payload || this.invalidPayload(payload)) {
-      throw CE.RuntimeException.invalidEncryptionPayload()
+      throw RuntimeException.invalidEncryptionPayload()
     }
 
     if (!this.validMac(payload)) {
-      throw CE.RuntimeException.invalidEncryptionMac()
+      throw RuntimeException.invalidEncryptionMac()
     }
     return payload
   }
@@ -145,7 +148,7 @@ class Encryption {
    *
    * @public
    */
-  hash (iv, value) {
+  hash (iv: string, value: string) {
     return this.hashHmac('sha256', iv + value, this.appKey)
   }
 
@@ -159,7 +162,7 @@ class Encryption {
    *
    * @public
    */
-  hashHmac (algo, data, key) {
+  hashHmac (algo: string, data: string, key: string): string {
     return crypto.createHmac(algo, key).update(data).digest('hex')
   }
 
@@ -171,7 +174,7 @@ class Encryption {
    *
    * @public
    */
-  base64Encode (unencoded) {
+  base64Encode (unencoded: string): string {
     return new Buffer(unencoded || '').toString('base64')
   }
 
@@ -184,7 +187,7 @@ class Encryption {
    *
    * @public
    */
-  base64Decode (encoded, raw) {
+  base64Decode (encoded: string, raw?: boolean): any {
     if (raw) {
       return new Buffer(encoded || '', 'base64')
     }
@@ -199,7 +202,7 @@ class Encryption {
    *
    * @public
    */
-  invalidPayload (data) {
+  invalidPayload (data: any): boolean {
     return typeof data !== 'object' || !data.hasOwnProperty('iv') || !data.hasOwnProperty('value') || !data.hasOwnProperty('mac')
   }
 
@@ -211,10 +214,13 @@ class Encryption {
    *
    * @public
    */
-  validMac (payload) {
+  validMac (payload: any): boolean {
     const bytes = crypto.randomBytes(this.getIvSize())
-    const calcMac = this.hashHmac('sha256', this.hash(payload.iv, payload.value), bytes)
-    return this.hashHmac('sha256', payload.mac, bytes) === calcMac
+
+    let temp_bytes: string = bytes.toString()
+
+    const calcMac = this.hashHmac('sha256', this.hash(payload.iv, payload.value), temp_bytes)
+    return this.hashHmac('sha256', payload.mac, temp_bytes) === calcMac
   }
 
   /**
@@ -224,10 +230,7 @@ class Encryption {
    *
    * @public
    */
-  getIvSize () {
+  getIvSize (): number {
     return 16
   }
-
 }
-
-module.exports = Encryption
