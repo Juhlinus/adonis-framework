@@ -8,7 +8,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Number}
    */
-  static get defaultErrorCode () {
+  static get defaultErrorCode (): number {
     return 500
   }
 
@@ -21,7 +21,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static missingRouteAction (action, code?) {
+  static missingRouteAction (action: string, code?: number): Object {
     return new NE.RuntimeException(`The action ${action} has not been found`, code || this.defaultErrorCode, 'E_MISSING_ROUTE_ACTION')
   }
 
@@ -34,7 +34,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static missingRoute (route, code?) {
+  static missingRoute (route: string, code?: number): Object {
     return new NE.RuntimeException(`The route ${route} has not been found`, code || this.defaultErrorCode, 'E_MISSING_ROUTE')
   }
 
@@ -46,7 +46,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static invalidEncryptionMac (code?) {
+  static invalidEncryptionMac (code?: number): Object {
     return new NE.RuntimeException('The MAC is invalid', code || this.defaultErrorCode, 'E_INVALID_ENCRYPTION_MAC')
   }
 
@@ -57,7 +57,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static invalidEncryptionPayload (code?) {
+  static invalidEncryptionPayload (code?: number): Object {
     return new NE.RuntimeException('The payload is invalid', code || this.defaultErrorCode, 'E_INVALID_ENCRYPTION_PAYLOAD')
   }
 
@@ -69,7 +69,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static malformedJSON (code?) {
+  static malformedJSON (code?: number): Object {
     return new NE.RuntimeException('The payload is not a json object', code || this.defaultErrorCode, 'E_MALFORMED_JSON')
   }
 
@@ -81,7 +81,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static fileDeleted (code?) {
+  static fileDeleted (code?: number): Object {
     return new NE.RuntimeException('The file has already been deleted', code || this.defaultErrorCode, 'E_FILE_DELETED')
   }
 
@@ -93,7 +93,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static decryptFailed (code?) {
+  static decryptFailed (code?: number): Object {
     return new NE.RuntimeException('Could not decrypt the data', code || this.defaultErrorCode, 'E_ENCRYPTION_DECRYPT_FAILED')
   }
 
@@ -106,7 +106,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static invalidEncryptionCipher (code?) {
+  static invalidEncryptionCipher (code?: number): Object {
     return new NE.RuntimeException('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths', code || this.defaultErrorCode, 'E_INVALID_ENCRPYTION_CIPHER')
   }
 
@@ -119,7 +119,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static missingAppKey (message, code?) {
+  static missingAppKey (message: string, code?: number): Object {
     return new NE.RuntimeException(message, code || this.defaultErrorCode, 'E_MISSING_APPKEY')
   }
 
@@ -132,7 +132,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static invalidSessionDriver (driver, code?) {
+  static invalidSessionDriver (driver: string, code?: number): Object {
     return new NE.RuntimeException(`Unable to locate ${driver} session driver`, code || this.defaultErrorCode, 'E_INVALID_SESSION_DRIVER')
   }
 
@@ -145,7 +145,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static missingNamedMiddleware (name, code?) {
+  static missingNamedMiddleware (name: string, code?: number): Object) {
     return new NE.RuntimeException(`${name} is not registered as a named middleware`, code || this.defaultErrorCode, 'E_MISSING_NAMED_MIDDLEWARE')
   }
 
@@ -159,7 +159,7 @@ export class InvalidArgumentException extends NE.InvalidArgumentException {
    *
    * @return {Number}
    */
-  static get defaultErrorCode () {
+  static get defaultErrorCode (): number {
     return 500
   }
 
@@ -172,7 +172,7 @@ export class InvalidArgumentException extends NE.InvalidArgumentException {
    *
    * @return {Object}
    */
-  static missingParameter (message, code?) {
+  static missingParameter (message: string, code?: number): Object {
     return new NE.InvalidArgumentException(message, code || this.defaultErrorCode, 'E_MISSING_PARAMETER')
   }
 
@@ -185,7 +185,7 @@ export class InvalidArgumentException extends NE.InvalidArgumentException {
    *
    * @return {Object}
    */
-  static invalidParameter (message, code?) {
+  static invalidParameter (message: string, code?: number): Object {
     return new NE.InvalidArgumentException(message, code || this.defaultErrorCode, 'E_INVALID_PARAMETER')
   }
 
@@ -199,7 +199,7 @@ export class InvalidArgumentException extends NE.InvalidArgumentException {
    *
    * @return {Object}
    */
-  static missingEvent (event, name, code?) {
+  static missingEvent (event: string, name: string, code?: number): Object {
     return new NE.InvalidArgumentException(`Cannot find an event with ${name} name for ${event} event`, code || this.defaultErrorCode, 'E_MISSING_NAMED_EVENT')
   }
 
