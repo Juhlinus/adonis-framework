@@ -53,7 +53,7 @@
     "@types/dotenv": "^2.0.20",
     "@types/eventemitter2": "^2.2.1",
     "@types/lodash": "^4.17.4",
-    /* "@types/node": "^7.0.5", */
+    "@types/node": "^7.0.5",
     "@types/path-to-regexp": "^1.0.29",
     "adonis-binding-resolver": "^1.0.1",
     "cat-log": "^1.0.2",

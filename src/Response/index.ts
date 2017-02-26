@@ -1,16 +1,18 @@
-'use strict'
-
 /**
  * adonis-framework
  * Copyright(c) 2015-2016 Harminder Virk
  * MIT Licensed
 */
+import { nodeRes } from 'node-res'
+import { nodeCookie } from 'node-cookie'
+import { View } from '../View'
+import { Config } from '../Config'
+import { Route } from '../Route'
+import * as http from 'http'
 
-const nodeRes = require('node-res')
-const nodeCookie = require('node-cookie')
-let viewInstance = null
-let routeInstance = null
-let configInstance = null
+let viewInstance: View
+let routeInstance: Route
+let configInstance: Config
 
 /**
  * Glued http response to end requests by sending
@@ -18,8 +20,13 @@ let configInstance = null
  * @class
  */
 class Response {
+  
+  private request: Object
+  private response: http.ServerResponse
 
-  constructor (request, response) {
+  private _finished: boolean
+
+  constructor (request: http.IncomingMessage, response: http.ServerResponse) {
     this.request = request
     this.response = response
     if (configInstance.get('app.http.setPoweredBy', true)) {
@@ -27,7 +34,7 @@ class Response {
     }
     nodeRes.descriptiveMethods.forEach((method) => {
       this[method] = (body) => {
-        nodeRes[method](this.request.request, this.response, body)
+        nodeRes[method](this.request, this.response, body)
       }
     })
   }
@@ -40,7 +47,7 @@ class Response {
    *
    * @return {Boolean}
    */
-  get finished () {
+  get finished (): boolean {
     return this.response.finished
   }
 
@@ -52,7 +59,7 @@ class Response {
    *
    * @return {Boolean}
    */
-  get headersSent () {
+  get headersSent (): boolean {
     return this.response.headersSent
   }
 
@@ -64,7 +71,7 @@ class Response {
    *
    * @return {Boolean}
    */
-  get isPending () {
+  get isPending (): boolean {
     return (!this.headersSent && !this.finished)
   }
 
@@ -80,7 +87,7 @@ class Response {
    *
    * @public
    */
-  header (key, value) {
+  header (key: string, value: any): Object {
     nodeRes.header(this.response, key, value)
     return this
   }
@@ -99,7 +106,7 @@ class Response {
    *
    * @public
    */
-  * view (template, options) {
+  * view (template: string, options: Object): any  {
     return viewInstance.make(template, options)
   }
 
@@ -116,7 +123,7 @@ class Response {
    * yield response.sendView('profile', {name: 'doe'})
    * @public
    */
-  * sendView (template, options) {
+  * sendView (template: string, options: Object) {
     const view = yield this.view(template, options)
     this.send(view)
   }
@@ -132,7 +139,7 @@ class Response {
    *
    * @public
    */
-  removeHeader (key) {
+  removeHeader (key: string): Object {
     nodeRes.removeHeader(this.response, key)
     return this
   }
@@ -149,7 +156,7 @@ class Response {
    * response.status(200)
    * @public
    */
-  status (statusCode) {
+  status (statusCode: number): Object {
     nodeRes.status(this.response, statusCode)
     return this
   }
@@ -160,7 +167,7 @@ class Response {
    *
    * @public
    */
-  end () {
+  end (): void {
     nodeRes.end(this.response)
   }
 
@@ -172,8 +179,8 @@ class Response {
    *
    * @public
    */
-  send (body) {
-    nodeRes.send(this.request.request, this.response, body)
+  send (body: any): void {
+    nodeRes.send(http.request, this.response, body)
   }
 
   /**
@@ -184,8 +191,8 @@ class Response {
    *
    * @public
    */
-  json (body) {
-    nodeRes.json(this.request.request, this.response, body)
+  json (body: Object): void {
+    nodeRes.json(http.request, this.response, body)
   }
 
   /**
@@ -197,9 +204,9 @@ class Response {
    *
    * @public
    */
-  jsonp (body) {
-    const callback = this.request.input('callback') || configInstance.get('app.http.jsonpCallback')
-    nodeRes.jsonp(this.request.request, this.response, body, callback)
+  jsonp (body: Object): void {
+    // const callback = http.request.input('callback') || configInstance.get('app.http.jsonpCallback')
+    // nodeRes.jsonp(this.request.request, this.response, body, callback)
   }
 
   /**
@@ -213,7 +220,7 @@ class Response {
    *
    * @public
    */
-  download (filePath) {
+  download (filePath: string): void {
     nodeRes.download(this.request, this.response, filePath)
   }
 
@@ -229,7 +236,7 @@ class Response {
    *
    * @public
    */
-  attachment (filePath, name, disposition) {
+  attachment (filePath: string, name: string, disposition: string): void {
     nodeRes.attachment(this.request, this.response, filePath, name, disposition)
   }
 
@@ -241,9 +248,9 @@ class Response {
    *
    * @public
    */
-  location (toUrl) {
+  location (toUrl: string): Object {
     if (toUrl === 'back') {
-      toUrl = this.request.header('Referrer') || '/'
+      // toUrl = this.request.header('Referrer') || '/'
     }
     nodeRes.location(this.response, toUrl)
     return this
@@ -256,11 +263,11 @@ class Response {
    * @param  {Number} [status=302] - http status code
    *
    */
-  redirect (toUrl, status) {
+  redirect (toUrl: string, status: number): void {
     if (toUrl === 'back') {
       toUrl = this.request.header('Referrer') || '/'
     }
-    nodeRes.redirect(this.request.request, this.response, toUrl, status)
+    // nodeRes.redirect(this.request.request, this.response, toUrl, status)
   }
 
   /**
@@ -269,7 +276,7 @@ class Response {
    * @param  {String} field
    * @return {Object} - reference to class instance for chaining
    */
-  vary (field) {
+  vary (field: string): Object {
     nodeRes.vary(this.response, field)
     return this
   }
@@ -286,7 +293,7 @@ class Response {
    * response.route('user.profile', {id: 1})
    * @public
    */
-  route (route, data, status) {
+  route (route: strings, data: Object, status: number): void {
     const toUrl = routeInstance.url(route, data)
     this.redirect(toUrl, status)
   }
@@ -308,10 +315,10 @@ class Response {
    *
    * @public
    */
-  cookie (key, value, options) {
+  cookie (key: string, value: any, options: Object): Object {
     const secret = configInstance.get('app.appKey')
     const encrypt = !!secret
-    nodeCookie.create(this.request.request, this.response, key, value, options, secret, encrypt)
+    // nodeCookie.create(this.request.request, this.response, key, value, options, secret, encrypt)
     return this
   }
 
@@ -321,12 +328,13 @@ class Response {
    * @param  {String} key
    * @param  {Mixed} value
    * @param  {Object} [options]
-   *
+   * @return  {Object} 
+   * 
    * @example
    * Response.plainCookie('foo', 'bar')
    */
-  plainCookie (key, value, options) {
-    nodeCookie.create(this.request.request, this.response, key, value, options)
+  plainCookie (key: string, value: any, options: Object): Object {
+    // nodeCookie.create(this.request.request, this.response, key, value, options)
     return this
   }
 
@@ -338,8 +346,8 @@ class Response {
    *
    * @return {Object} - reference to class instance for chaining
    */
-  clearCookie (key, options) {
-    nodeCookie.clear(this.request.request, this.response, key, options)
+  clearCookie (key: string, options: Object): Object {
+    // nodeCookie.clear(this.request.request, this.response, key, options)
     return this
   }
 
@@ -351,19 +359,17 @@ class Response {
    *
    * @public
    */
-  static macro (name, callback) {
+  static macro (name: string, callback: Function): void {
     this.prototype[name] = callback
   }
 
 }
 
-class ResponseBuilder {
-  constructor (View, Route, Config) {
+export class ResponseBuilder {
+  constructor (View: View, Route: Route, Config: Config) {
     viewInstance = View
     routeInstance = Route
     configInstance = Config
     return Response
   }
 }
-
-module.exports = ResponseBuilder
