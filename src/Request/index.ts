@@ -538,7 +538,7 @@ class Request {
    * request.file('avatar')
    * @public
    */
-  file (key: string|number, options?: Object): Object {
+  file (key: string|number, options?: Object): any {
     /**
      * if requested file was not uploaded return an
      * empty instance of file object.
@@ -557,8 +557,9 @@ class Request {
      * if multiple file upload , convert them to
      * file instances
      */
+    // This might fuck shit up
     if (_.isArray(fileToReturn)) {
-      return _.map(fileToReturn, (file) => this._toFileInstance(file.toJSON(), options))
+      return _.map(fileToReturn, (file) => this._toFileInstance(JSON.stringify(file), options))
     }
     return this._toFileInstance(fileToReturn.toJSON(), options)
   }
