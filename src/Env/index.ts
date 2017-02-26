@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * adonis-framework
  *
@@ -8,9 +6,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
 */
-const path = require('path')
-const dotenv = require('dotenv')
-const util = require('../../lib/util')
+import * as path from 'path'
+import * as dotenv from 'dotenv'
+import { Util } from '../../lib/util'
+import { Helpers } from '../Helpers'
 
 /**
  * Manage environment variables by reading .env file
@@ -18,16 +17,17 @@ const util = require('../../lib/util')
  *
  * @class
  */
-class Env {
+export class Env {
+  private util: Util
 
-  constructor (Helpers) {
+  constructor (Helpers: Helpers) {
     const envLocation = this.envPath()
     const options = {
       path: path.isAbsolute(envLocation) ? envLocation : path.join(Helpers.basePath(), envLocation),
       silent: process.env.ENV_SILENT || false,
       encoding: process.env.ENV_ENCODING || 'utf8'
     }
-    dotenv.load(options)
+    dotenv.config(options)
   }
 
   /**
@@ -39,7 +39,7 @@ class Env {
    *
    * @public
    */
-  envPath () {
+  envPath (): string {
     if (!process.env.ENV_PATH || process.env.ENV_PATH.length === 0) {
       return '.env'
     }
@@ -61,8 +61,8 @@ class Env {
    *
    * @public
    */
-  get (key, defaultValue) {
-    defaultValue = util.existy(defaultValue) ? defaultValue : null
+  get (key: string, defaultValue: any) {
+    defaultValue = this.util.existy(defaultValue) ? defaultValue : null
     let returnValue = process.env[key] || defaultValue
     if (returnValue === 'true' || returnValue === '1') {
       return true
@@ -84,10 +84,7 @@ class Env {
    *
    * @public
    */
-  set (key, value) {
+  set (key: string, value: any) {
     process.env[key] = value
   }
-
 }
-
-module.exports = Env
