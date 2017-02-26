@@ -145,7 +145,7 @@ export class RuntimeException extends NE.RuntimeException {
    *
    * @return {Object}
    */
-  static missingNamedMiddleware (name: string, code?: number): Object) {
+  static missingNamedMiddleware (name: string, code?: number): Object {
     return new NE.RuntimeException(`${name} is not registered as a named middleware`, code || this.defaultErrorCode, 'E_MISSING_NAMED_MIDDLEWARE')
   }
 

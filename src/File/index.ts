@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * adonis-framework
  *
@@ -8,11 +6,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
 */
-
-const path = require('path')
-const fs = require('co-fs-extra')
-const bytes = require('bytes')
-const CE = require('../Exceptions')
+import * as path from 'path'
+import { fs } from 'co-fs-extra'
+import * as bytes from 'bytes'
+import { RuntimeException, InvalidArgumentException, HttpException }  from '../Exceptions'
 
 /**
  * Used by request object internally to manage file uploads.
@@ -21,17 +18,30 @@ const CE = require('../Exceptions')
  *
  * @alias Request.file
  */
-class File {
+export class File {
+  private options: Object
+  private _deleted: boolean
+  private _error: any
+  private _fileName: string
+  private _maxSize: string
+  private _allowedExtensions: Array<string>
+  private _filePath: string
+  private _file: Object
+  private _name: string
+  private _type: string
+  private _size: string
+  private _path: string
 
-  constructor (formidableObject, options) {
-    options = options || {}
+  constructor (formidableObject: Object, options: any) {
+    this.options = options || {}
     this.file = formidableObject
-    this.file.deleted = false
-    this.file.error = null
-    this.file.fileName = ''
-    this.file.maxSize = options.maxSize ? bytes(options.maxSize) : null
-    this.file.allowedExtensions = options.allowedExtensions || []
-    this.file.filePath = ''
+    // this.file.deleted = false
+    this.deleted = false
+    this.error = null
+    this.fileName = ''
+    this.maxSize = options.maxSize ? bytes(options.maxSize) : null
+    this.allowedExtensions = options.allowedExtensions || []
+    this.filePath = ''
   }
 
   /**
@@ -43,9 +53,9 @@ class File {
    * @private
    */
   _setError (error) {
-    this.file.error = error
-    this.file.fileName = ''
-    this.file.filePath = ''
+    this.error = error
+    this.fileName = ''
+    this.filePath = ''
   }
 
   /**
@@ -58,9 +68,9 @@ class File {
    * @private
    */
   _setUploadedFile (fileName, filePath) {
-    this.file.error = null
-    this.file.fileName = fileName
-    this.file.filePath = filePath
+    this.error = null
+    this.fileName = fileName
+    this.filePath = filePath
   }
 
   /**
@@ -69,7 +79,7 @@ class File {
    * @private
    */
   _setFileSizeExceedsError () {
-    this._setError(`Uploaded file size ${bytes(this.clientSize())} exceeds the limit of ${bytes(this.file.maxSize)}`)
+    this._setError(`Uploaded file size ${bytes(this.clientSize())} exceeds the limit of ${bytes(this.maxSize)}`)
   }
 
   /**
@@ -89,7 +99,7 @@ class File {
    * @private
    */
   _underAllowedSize () {
-    return !this.file.maxSize || (this.clientSize() <= this.file.maxSize)
+    return !this.maxSize || (this.clientSize() <= this.maxSize)
   }
 
   /**
@@ -101,7 +111,7 @@ class File {
    * @private
    */
   _hasValidExtension () {
-    return !this.file.allowedExtensions.length || this.file.allowedExtensions.indexOf(this.extension()) > -1
+    return !this.allowedExtensions.length || this.allowedExtensions.indexOf(this.extension()) > -1
   }
 
   /**
@@ -153,8 +163,8 @@ class File {
    * @public
    */
   move (toPath, name) {
-    if (this.file.deleted === true) {
-      throw CE.RuntimeException.fileDeleted()
+    if (this.deleted === true) {
+      throw RuntimeException.fileDeleted()
     }
     name = name || this.clientName()
     const uploadingFileName = `${toPath}/${name}`
@@ -173,14 +183,14 @@ class File {
    */
   delete () {
     return new Promise((resolve, reject) => {
-      if (this.file.deleted === true) {
-        throw CE.RuntimeException.fileDeleted()
+      if (this.deleted === true) {
+        throw RuntimeException.fileDeleted()
       }
       let path = this.uploadPath() || this.tmpPath()
       fs.unlink(path, (err) => {
         if (err) return reject(err)
         resolve(true)
-        this.file.deleted = true
+        this.deleted = true
       })
     })
   }
@@ -193,7 +203,7 @@ class File {
    * @public
    */
   clientName () {
-    return this.file.name
+    return this.name ? this.name : this.fileName
   }
 
   /**
@@ -204,7 +214,7 @@ class File {
    * @public
    */
   mimeType () {
-    return this.file.type
+    return this.type
   }
 
   /**
@@ -226,7 +236,7 @@ class File {
    * @public
    */
   clientSize () {
-    return this.file.size
+    return this.size
   }
 
   /**
@@ -237,7 +247,7 @@ class File {
    * @public
    */
   tmpPath () {
-    return this.file.path
+    return this.path
   }
 
   /**
@@ -248,7 +258,7 @@ class File {
    * @public
    */
   uploadName () {
-    return this.file.fileName
+    return this.fileName
   }
 
   /**
@@ -259,7 +269,7 @@ class File {
    * @public
    */
   uploadPath () {
-    return this.file.filePath
+    return this.filePath
   }
 
   /**
@@ -270,7 +280,7 @@ class File {
    * @public
    */
   exists () {
-    return this.tmpPath() && !this.file.deleted
+    return this.tmpPath() && !this.deleted
   }
 
   /**
@@ -292,12 +302,12 @@ class File {
    * @public
    */
   errors () {
-    return this.file.error
+    return this.error
   }
 
   /**
    * returns the JSON representation of the
-   * file instance.
+   * file instan
    *
    * @return {Object}
    *
@@ -307,6 +317,38 @@ class File {
     return this.file
   }
 
-}
+  get deleted(): boolean { return this._deleted }
+  set deleted(value: boolean) { this._deleted = value }
 
-module.exports = File
+  get error(): any { return this._error }
+  set error(value: any) { this._error = value }
+
+  get fileName(): string { return this._fileName }
+  set fileName(value: string) { this._fileName = value }
+
+  get maxSize(): string { return this._maxSize }
+  set maxSize(value: string) { this._maxSize = value }
+
+  get allowedExtensions(): string[] { return this._allowedExtensions }
+  set allowedExtensions(value: string[]) { this._allowedExtensions = value }
+
+  get filePath(): string { return this._filePath }
+  set filePath(value: string) { this._filePath = value }
+
+  get name(): string { return this._name }
+  set name(value: string) { this._name = value }
+
+  get type(): string { return this._type }
+  set type(value: string) { this._type = value }
+
+  get size(): string { return this._size }
+  set size(value: string) { this._size = value }
+
+  get path(): string { return this._path }
+  set path(value: string) { this._path = value }
+
+  get file(): Object { return { deleted: this.deleted, error: this.error, fileName: this.fileName, 
+                                maxSize: this.maxSize, allowedExtensions: this.allowedExtensions,
+                                filePath: this.filePath } }
+  set file(value: Object) { this._file = value }
+}
