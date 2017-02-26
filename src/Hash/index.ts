@@ -29,7 +29,7 @@ export class Hash {
    * yield Hash.make('somepassword')
    * yield Hash.make('somepassword', 5)
    */
-  make(value: string, rounds: number): Promise<{}> {
+  make(value: string, rounds: number): Promise<Object> {
     rounds = rounds || 10
     return new Promise(function (resolve, reject) {
       bcrypt.hash(value, rounds, function (error, hash) {
@@ -55,7 +55,7 @@ export class Hash {
    * @example
    * yield Hash.verify('plainpassword', 'hashpassword')
    */
-  verify(value: string, hash: string): Promise<{}> {
+  verify(value: string, hash: string): Promise<Object> {
     return new Promise(function (resolve, reject) {
       bcrypt.compare(value, hash, function (error, response) {
         if (error) {

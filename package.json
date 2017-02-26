@@ -54,6 +54,7 @@
     "@types/eventemitter2": "^2.2.1",
     "@types/lodash": "^4.14.53",
     "@types/node": "^7.0.5",
+    "@types/path-to-regexp": "^1.0.29",
     "adonis-binding-resolver": "^1.0.1",
     "bcryptjs": "^2.4.0",
     "bytes": "^2.4.0",

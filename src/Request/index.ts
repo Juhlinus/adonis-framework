@@ -9,12 +9,13 @@
  * file that was distributed with this source code.
 */
 
-const nodeReq = require('node-req')
-const nodeCookie = require('node-cookie')
-const File = require('../File')
-const pathToRegexp = require('path-to-regexp')
-const _ = require('lodash')
-const util = require('../../lib/util')
+import { nodeReq } from 'node-req'
+import { nodeCookie } from 'node-cookie'
+import { File } from '../File'
+import { Config } from '../Config'
+import * as pathToRegexp from 'path-to-regexp'
+import * as  _  from 'lodash'
+import { Util } from '../../lib/util'
 
 let configInstance = null
 
@@ -26,8 +27,17 @@ let configInstance = null
  * @class
  */
 class Request {
+  private request: string
+  private response: string
+  private _body: Object
+  private _files: Array<Object>|Array<string>
+  private secret: string
+  private cookiesObject: Object
+  private parsedCookies: boolean
+  private util: Util
+  private _params: Object
 
-  constructor (request, response) {
+  constructor (request: string, response: string) {
     this.request = request
     this.response = response
     this._body = {}
@@ -71,11 +81,11 @@ class Request {
    *
    * @public
    */
-  input (key, defaultValue) {
-    defaultValue = util.existy(defaultValue) ? defaultValue : null
+  input (key: string, defaultValue: any): any {
+    defaultValue = this.util.existy(defaultValue) ? defaultValue : null
     const input = this.all()
     const value = _.get(input, key)
-    return util.existy(value) ? value : defaultValue
+    return this.util.existy(value) ? value : defaultValue
   }
 
   /**
@@ -85,7 +95,7 @@ class Request {
    *
    * @public
    */
-  all () {
+  all (): Object {
     return _.merge(this.get(), this.post())
   }
 
@@ -101,7 +111,7 @@ class Request {
    *
    * @public
    */
-  except () {
+  except (any?: any): Object {
     const args = _.isArray(arguments[0]) ? arguments[0] : _.toArray(arguments)
     return _.omit(this.all(), args)
   }
@@ -118,7 +128,7 @@ class Request {
    *
    * @public
    */
-  only () {
+  only (any?: any): Object {
     const args = _.isArray(arguments[0]) ? arguments[0] : _.toArray(arguments)
     return _.pick(this.all(), args)
   }
@@ -137,7 +147,7 @@ class Request {
    *
    * @public
    */
-  collect () {
+  collect (): Array<Object> {
     const args = _.isArray(arguments[0]) ? arguments[0] : _.toArray(arguments)
     const selectedValues = this.only(args)
 
@@ -145,7 +155,8 @@ class Request {
      * need to make sure the values array is in balance to the expected
      * array. Otherwise map method will pickup values for wrong keys.
      */
-    if (_.size(args) > _.size(selectedValues)) {
+    // Don't know if toString() will work
+    if (_.size(args) > _.size(selectedValues.toString())) {
       args.forEach((key) => { selectedValues[key] = selectedValues[key] || [] })
     }
 
@@ -165,7 +176,7 @@ class Request {
    *
    * @public
    */
-  get () {
+  get (): Object {
     return nodeReq.get(this.request)
   }
 
@@ -177,7 +188,7 @@ class Request {
    *
    * @public
    */
-  post () {
+  post (): Object {
     return this._body || {}
   }
 
@@ -194,10 +205,10 @@ class Request {
    *
    * @public
    */
-  header (key, defaultValue) {
-    defaultValue = util.existy(defaultValue) ? defaultValue : null
+  header (key: string, defaultValue: any) {
+    defaultValue = this.util.existy(defaultValue) ? defaultValue : null
     const headerValue = nodeReq.header(this.request, key)
-    return util.existy(headerValue) ? headerValue : defaultValue
+    return this.util.existy(headerValue) ? headerValue : defaultValue
   }
 
   /**
@@ -207,7 +218,7 @@ class Request {
    *
    * @public
    */
-  headers () {
+  headers (): Object {
     return nodeReq.headers(this.request)
   }
 
@@ -219,7 +230,7 @@ class Request {
    *
    * @public
    */
-  fresh () {
+  fresh (): boolean {
     return nodeReq.fresh(this.request, this.response)
   }
 
@@ -232,7 +243,7 @@ class Request {
    *
    * @public
    */
-  stale () {
+  stale (): boolean {
     return nodeReq.stale(this.request, this.response)
   }
 
@@ -247,7 +258,7 @@ class Request {
    *
    * @public
    */
-  ip () {
+  ip (): string {
     return nodeReq.ip(this.request, configInstance.get('app.http.trustProxy'))
   }
 
@@ -262,7 +273,7 @@ class Request {
    *
    * @public
    */
-  ips () {
+  ips (): Array<string> {
     return nodeReq.ips(this.request, configInstance.get('app.http.trustProxy'))
   }
 
@@ -273,7 +284,7 @@ class Request {
    *
    * @public
    */
-  secure () {
+  secure (): boolean {
     return nodeReq.secure(this.request)
   }
 
@@ -289,7 +300,7 @@ class Request {
    *
    * @public
    */
-  subdomains () {
+  subdomains (): Array<string> {
     return nodeReq.subdomains(this.request, configInstance.get('app.http.trustProxy'), configInstance.get('app.http.subdomainOffset'))
   }
 
@@ -300,7 +311,7 @@ class Request {
    *
    * @public
    */
-  ajax () {
+  ajax (): boolean {
     return nodeReq.ajax(this.request)
   }
 
@@ -312,7 +323,7 @@ class Request {
    *
    * @public
    */
-  pjax () {
+  pjax (): boolean {
     return nodeReq.pjax(this.request)
   }
 
@@ -325,7 +336,7 @@ class Request {
    *
    * @public
    */
-  hostname () {
+  hostname (): string {
     return nodeReq.hostname(this.request, configInstance.get('app.http.trustProxy'))
   }
 
@@ -336,7 +347,7 @@ class Request {
    *
    * @public
    */
-  url () {
+  url (): string {
     return nodeReq.url(this.request)
   }
 
@@ -347,7 +358,7 @@ class Request {
    *
    * @public
    */
-  originalUrl () {
+  originalUrl (): string {
     return nodeReq.originalUrl(this.request)
   }
 
@@ -363,7 +374,7 @@ class Request {
    *
    * @public
    */
-  is () {
+  is (): boolean {
     const args = _.isArray(arguments[0]) ? arguments[0] : _.toArray(arguments)
     return nodeReq.is(this.request, args)
   }
@@ -379,7 +390,7 @@ class Request {
    *
    * @public
    */
-  accepts () {
+  accepts (): string {
     const args = _.isArray(arguments[0]) ? arguments[0] : _.toArray(arguments)
     return nodeReq.accepts(this.request, args)
   }
@@ -391,7 +402,7 @@ class Request {
    *
    * @public
    */
-  method () {
+  method (): string {
     if (!configInstance.get('app.http.allowMethodSpoofing')) {
       return nodeReq.method(this.request)
     }
@@ -404,7 +415,7 @@ class Request {
    *
    * @returns {String}
    */
-  intended () {
+  intended (): string {
     return nodeReq.method(this.request)
   }
 
@@ -418,10 +429,10 @@ class Request {
    *
    * @public
    */
-  cookie (key, defaultValue) {
-    defaultValue = util.existy(defaultValue) ? defaultValue : null
+  cookie (key: string, defaultValue: any): any {
+    defaultValue = this.util.existy(defaultValue) ? defaultValue : null
     const cookies = this.cookies()
-    return util.existy(cookies[key]) ? cookies[key] : defaultValue
+    return this.util.existy(cookies[key]) ? cookies[key] : defaultValue
   }
 
   /**
@@ -431,7 +442,7 @@ class Request {
    *
    * @public
    */
-  cookies () {
+  cookies (): Object {
     const secret = this.secret || null
     const decrypt = !!this.secret
 
@@ -453,7 +464,7 @@ class Request {
    *
    * @return {Object}
    */
-  plainCookies () {
+  plainCookies (): Object {
     return nodeCookie.parse(this.request)
   }
 
@@ -467,10 +478,10 @@ class Request {
    *
    * @return {Mixed}
    */
-  plainCookie (key, defaultValue) {
-    defaultValue = util.existy(defaultValue) ? defaultValue : null
+  plainCookie (key: string, defaultValue?: any) {
+    defaultValue = this.util.existy(defaultValue) ? defaultValue : null
     const cookies = this.plainCookies()
-    return util.existy(cookies[key]) ? cookies[key] : defaultValue
+    return this.util.existy(cookies[key]) ? cookies[key] : defaultValue
   }
 
   /**
@@ -483,9 +494,9 @@ class Request {
    *
    * @public
    */
-  param (key, defaultValue) {
-    defaultValue = util.existy(defaultValue) ? defaultValue : null
-    return util.existy(this.params()[key]) ? this.params()[key] : defaultValue
+  param (key: string, defaultValue?: any): any {
+    defaultValue = this.util.existy(defaultValue) ? defaultValue : null
+    return this.util.existy(this.params()[key]) ? this.params()[key] : defaultValue
   }
 
   /**
@@ -495,7 +506,7 @@ class Request {
    *
    * @public
    */
-  params () {
+  params (): Object {
     return this._params || {}
   }
 
@@ -508,7 +519,7 @@ class Request {
    * @return {Object}
    * @private
    */
-  _toFileInstance (file, options) {
+  _toFileInstance (file: Object, options: Object): Object {
     if (!(file instanceof File)) {
       file = new File(file, options)
     }
@@ -519,15 +530,15 @@ class Request {
    * returns uploaded file instance for a given key
    * @instance Request.file
    *
-   * @param  {String} key
-   * @param  {Objecr} [options]
+   * @param  {String|Number} key
+   * @param  {Object} [options]
    * @return {Object}
    *
    * @example
    * request.file('avatar')
    * @public
    */
-  file (key, options) {
+  file (key: string|number, options?: Object): Object {
     /**
      * if requested file was not uploaded return an
      * empty instance of file object.
@@ -556,11 +567,11 @@ class Request {
    * returns all uploded files by converting
    * them to file instances
    *
-   * @return {Array}
+   * @return {Array<Object>}
    *
    * @public
    */
-  files () {
+  files (): Array<Object> {
     return _.map(this._files, (file, index) => {
       return this.file(index)
     })
@@ -578,7 +589,7 @@ class Request {
    *
    * @public
    */
-  match () {
+  match (any?: string): boolean {
     const args = _.isArray(arguments[0]) ? arguments[0] : _.toArray(arguments)
     const url = this.url()
     const pattern = pathToRegexp(args, [])
@@ -596,7 +607,7 @@ class Request {
    *
    * @public
    */
-  format () {
+  format (): string {
     return this.param('format') ? this.param('format').replace('.', '') : null
   }
 
@@ -608,7 +619,7 @@ class Request {
    *
    * @public
    */
-  hasBody () {
+  hasBody (): boolean {
     return nodeReq.hasBody(this.request)
   }
 
@@ -620,7 +631,7 @@ class Request {
    *
    * @return {String}
    */
-  language (languages) {
+  language (languages: Array<string>): string {
     return nodeReq.language(this.request, languages)
   }
 
@@ -630,7 +641,7 @@ class Request {
    *
    * @return {Array}
    */
-  languages () {
+  languages (): Array<string> {
     return nodeReq.languages(this.request)
   }
 
@@ -642,7 +653,7 @@ class Request {
    *
    * @return {String}
    */
-  encoding (encodings) {
+  encoding (encodings: Array<string>): string {
     return nodeReq.encoding(this.request, encodings)
   }
 
@@ -652,7 +663,7 @@ class Request {
    *
    * @return {Array}
    */
-  encodings () {
+  encodings (): Array<string> {
     return nodeReq.encodings(this.request)
   }
 
@@ -664,7 +675,7 @@ class Request {
    *
    * @return {String}
    */
-  charset (charsets) {
+  charset (charsets: Array<string>): string {
     return nodeReq.charset(this.request)
   }
 
@@ -674,7 +685,7 @@ class Request {
    *
    * @return {Array}
    */
-  charsets () {
+  charsets (): Array<string> {
     return nodeReq.charsets(this.request)
   }
 
@@ -686,16 +697,14 @@ class Request {
    *
    * @public
    */
-  static macro (name, callback) {
+  static macro (name: string, callback: Function) {
     this.prototype[name] = callback
   }
 }
 
-class RequestBuilder {
-  constructor (Config) {
+export class RequestBuilder {
+  constructor (Config: Config) {
     configInstance = Config
     return Request
   }
 }
-
-module.exports = RequestBuilder
