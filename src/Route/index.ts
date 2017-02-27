@@ -7,7 +7,7 @@
 import { RouterHelper } from './helpers'
 import { Group } from './group'
 import { Resource } from './resource'
-import { domains } from './domains'
+import { Domains } from './domains'
 import { Util } from '../../lib/util'
 import * as  _ from 'lodash'
 import { CatLog } from 'cat-log'
@@ -17,12 +17,13 @@ import { CatLog } from 'cat-log'
  * @module Route
  */
 export class Route {
-  private log: CatLog
-  private util: Util
-  private helpers: RouterHelper
-  private _routes: Array<Object>
+  public log: CatLog
+  public util: Util
+  public helpers: RouterHelper
+  protected _routes: Array<Object>
   private activeGroup: string
   private resources: Object
+  private domains: Domains
 
   constructor() {
     this.log = new CatLog('adonis:framework')
@@ -50,8 +51,8 @@ export class Route {
    *
    * @public
    */
-  get routes():Array<Object> { return this._routes }
-  set routes(value:Array<Object>) { this._routes = value }
+  public get routes():Array<Object> { return this._routes }
+  public set routes(value:Array<Object>) { this._routes = value }
 
   /**
    * clear registered routes and other local variables
@@ -83,7 +84,7 @@ export class Route {
    *
    * @public
    */
-  route(route: Array<string>, verb: Array<string>, handler: any): Object {
+  public route(route: Array<string>|string, verb: Array<string>, handler: any): Object|any {
     let constructedRoute = this.helpers.construct(route, verb, handler, this.activeGroup)
     this.routes.push(constructedRoute)
     return this
@@ -394,7 +395,7 @@ export class Route {
    * @public
    */
   resolve(urlPath: string, verb: string, host: string): Object {
-    if (domains.match(host)) {
+    if (this.domains.match(host)) {
       urlPath = `${host}${urlPath}`
     }
     let resolvedRoute = this.helpers.returnMatchingRouteToUrl(this.routes, urlPath, verb)

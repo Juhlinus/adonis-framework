@@ -9,10 +9,17 @@
 
 import * as pathToRegexp from 'path-to-regexp'
 import * as _ from 'lodash'
+import { Route } from './index'
+import { CatLog } from 'cat-log'
+import { Util } from '../../lib/util'
 
-export class RouterHelper {
+export class RouterHelper extends Route {
   private pattern: RegExp
-
+  public log: CatLog
+  public util: Util
+  public helpers: RouterHelper
+  protected _routes: Array<Object>
+  
   /**
    * construct a new route using path-to-regexp
    *
@@ -24,6 +31,8 @@ export class RouterHelper {
    * @private
    */
   construct(route: any, verb: Array<string>, handler: any, group: any): Object {
+    this.log = new CatLog('adonis:framework')
+
     route = route.startsWith('/') ? route : `/${route}`
     const pattern = this.makeRoutePattern(route)
     const middlewares = []
@@ -175,4 +184,15 @@ export class RouterHelper {
       route.domain = domain
     })
   }
+
+  /**
+   * return all registered routes
+   *
+   * @method routes
+   * @return {Object}
+   *
+   * @public
+   */
+  public get routes():Array<Object> { return this._routes }
+  public set routes(value:Array<Object>) { this._routes = value }
 }
