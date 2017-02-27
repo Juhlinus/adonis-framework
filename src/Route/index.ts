@@ -4,7 +4,7 @@
  * MIT Licensed
 */
 
-import { RouterHelper as helper } from './helpers'
+import { RouterHelper } from './helpers'
 import { Group } from './group'
 import { Resource } from './resource'
 import { domains } from './domains'
@@ -19,6 +19,7 @@ import { CatLog } from 'cat-log'
 export class Route {
   private log: CatLog
   private util: Util
+  private helpers: RouterHelper
   private _routes: Array<string>
   private activeGroup: string
   private resources: Object
@@ -82,8 +83,8 @@ export class Route {
    *
    * @public
    */
-  route(route: string, verb: Array<string>, handler: any): Object {
-    let constructedRoute = helpers.construct(route, verb, handler, this.activeGroup)
+  route(route: Array<string>, verb: Array<string>, handler: any): Object {
+    let constructedRoute = this.helpers.construct(route, verb, handler, this.activeGroup)
     this.routes.push(constructedRoute)
     return this
   }
@@ -335,7 +336,7 @@ export class Route {
    * @public
    */
   middleware(): Object {
-    helpers.appendMiddleware(
+    this.helpers.appendMiddleware(
       this._lastRoute(),
       this.util.spread.apply(this, arguments)
     )
@@ -396,11 +397,11 @@ export class Route {
     if (domains.match(host)) {
       urlPath = `${host}${urlPath}`
     }
-    let resolvedRoute = helpers.returnMatchingRouteToUrl(this.routes, urlPath, verb)
+    let resolvedRoute = this.helpers.returnMatchingRouteToUrl(this.routes, urlPath, verb)
     if (_.size(resolvedRoute) === 0) {
       return {}
     }
-    return helpers.returnRouteArguments(resolvedRoute, urlPath, host)
+    return this.helpers.returnRouteArguments(resolvedRoute, urlPath, host)
   }
 
   /**
@@ -437,7 +438,7 @@ export class Route {
    *
    * @public
    */
-  url(pattern: string, params: object): string {
+  url(pattern: Array<string>, params: Object): string {
     const namedRoute = _.filter(this.routes, function (route: any) {
       return route.name === pattern
     })[0]
@@ -448,9 +449,9 @@ export class Route {
      */
     if (namedRoute) {
       const resolveRoute = namedRoute.domain ? `${namedRoute.domain}${namedRoute.route}` : namedRoute.route
-      return helpers.compileRouteToUrl(resolveRoute, params)
+      return this.helpers.compileRouteToUrl(resolveRoute, params)
     }
-    return helpers.compileRouteToUrl(pattern, params)
+    return this.helpers.compileRouteToUrl(pattern, params)
   }
 
   /**
@@ -504,6 +505,6 @@ export class Route {
    */
   formats(formats: Array<string>, strict: boolean) {
     const lastRoute = this._lastRoute()
-    helpers.addFormats(lastRoute, formats, strict)
+    this.helpers.addFormats(lastRoute, formats, strict)
   }
 }

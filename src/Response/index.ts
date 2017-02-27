@@ -265,7 +265,7 @@ class Response {
    */
   redirect (toUrl: string, status: number): void {
     if (toUrl === 'back') {
-      toUrl = this.request.header('Referrer') || '/'
+      toUrl = /* this.request.header('Referrer') || */ '/'
     }
     // nodeRes.redirect(this.request.request, this.response, toUrl, status)
   }
@@ -293,7 +293,7 @@ class Response {
    * response.route('user.profile', {id: 1})
    * @public
    */
-  route (route: strings, data: Object, status: number): void {
+  route (route: Array<string>, data: Object, status: number): void {
     const toUrl = routeInstance.url(route, data)
     this.redirect(toUrl, status)
   }
