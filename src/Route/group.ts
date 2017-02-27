@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * adonis-framework
  *
@@ -8,10 +6,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
 */
-
-const helpers = require('./helpers')
-const domains = require('./domains')
-const util = require('../../lib/util')
+import { RouterHelper } from './helpers';
+import { Domains } from './domains';
+import { Util } from '../../lib/util'
 
 /**
  * Route groups to keep configuration DRY for bunch of
@@ -19,19 +16,23 @@ const util = require('../../lib/util')
  * @class
  * @alias Route.Group
  */
-class Group {
+export class Group {
+  private routes: Array<string>
+  private helpers: RouterHelper
+  private domains: Domains
+  private util: Util
 
-  constructor (routes) {
+  constructor (routes: any) {
     this.routes = routes
   }
 
   /**
    * @see module:Route~middlewares
    */
-  middlewares () {
-    helpers.appendMiddleware(
+  middlewares (): any {
+    this.helpers.appendMiddleware(
       this.routes,
-      util.spread.apply(this, arguments)
+      this.util.spread.apply(this, arguments)
     )
     return this
   }
@@ -55,8 +56,8 @@ class Group {
    *
    * @public
    */
-  prefix (pattern) {
-    helpers.prefixRoute(this.routes, pattern)
+  prefix (pattern: string): Object {
+    this.helpers.prefixRoute(this.routes, pattern)
     return this
   }
 
@@ -72,19 +73,16 @@ class Group {
    *
    * @public
    */
-  domain (domain) {
-    domains.add(helpers.makeRoutePattern(domain))
-    helpers.addDomain(this.routes, domain)
+  domain (domain: string): void {
+    this.domains.add(this.helpers.makeRoutePattern(domain))
+    this.helpers.addDomain(this.routes, domain)
   }
 
   /**
    * @see module:Route~formats
    */
-  formats (formats, strict) {
-    helpers.addFormats(this.routes, formats, strict)
+  formats (formats: Array<string>, strict: boolean) {
+    this.helpers.addFormats(this.routes, formats, strict)
     return this
   }
-
 }
-
-module.exports = Group

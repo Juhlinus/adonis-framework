@@ -8,7 +8,7 @@
 */
 
 export class Domains {
-  private registeredDomains: Array<string>
+  private registeredDomains: Array<RegExp>
   /**
    * pushes a new domain to registeredDomains
    *
@@ -16,7 +16,7 @@ export class Domains {
    *
    * @private
    */
-  add(domain: string) {
+  add(domain: RegExp) {
     this.registeredDomains.push(domain)
   }
 

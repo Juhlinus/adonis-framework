@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
 */
 
-import { pathToRegexp } from 'path-to-regexp'
+import * as pathToRegexp from 'path-to-regexp'
 import * as _ from 'lodash'
 
 export class RouterHelper {
@@ -99,7 +99,7 @@ export class RouterHelper {
    *
    * @private
    */
-  compileRouteToUrl(route: Array<string>, values: Object): string {
+  compileRouteToUrl(route: string, values: Object): string {
     return pathToRegexp.compile(route)(values)
   }
 
