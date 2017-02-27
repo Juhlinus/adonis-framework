@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
 */
 "use strict";
-var pathToRegexp = require("path-to-regexp");
+var path_to_regexp_1 = require("path-to-regexp");
 var _ = require("lodash");
 var RouterHelper = (function () {
     function RouterHelper() {
@@ -40,7 +40,7 @@ var RouterHelper = (function () {
      * @private
      */
     RouterHelper.prototype.makeRoutePattern = function (route) {
-        return pathToRegexp(route, []);
+        return path_to_regexp_1.pathToRegexp(route, []);
     };
     /**
      * resolve route from routes store based upon current url
@@ -55,7 +55,7 @@ var RouterHelper = (function () {
     RouterHelper.prototype.returnMatchingRouteToUrl = function (routes, urlPath, verb) {
         var maps = _.filter(routes, function (route) {
             if (route.domain) {
-                route.pattern = makeRoutePattern(route.domain + route.route);
+                route.pattern = route.makeRoutePattern(route.domain + route.route);
             }
             return (route.pattern.test(urlPath) && _.includes(route.verb, verb));
         });
@@ -93,7 +93,7 @@ var RouterHelper = (function () {
      * @private
      */
     RouterHelper.prototype.compileRouteToUrl = function (route, values) {
-        return pathToRegexp.compile(route)(values);
+        return path_to_regexp_1.pathToRegexp.compile(route)(values);
     };
     /**
      * general purpose method to append new middlewares to
@@ -111,15 +111,15 @@ var RouterHelper = (function () {
             });
         }
         else {
-            routes.middlewares = routes.middlewares.concat(middlewares);
+            this.middlewares = this.middlewares.concat(middlewares);
         }
     };
     /**
      * adds formats to routes or an array of routes
      *
      * @param  {Array|Object}   routes
+     * @param  {Array}   format
      * @param  {Boolean}   strict
-     * @param  {void}   format
      * @private
      */
     RouterHelper.prototype.addFormats = function (routes, formats, strict) {
@@ -128,12 +128,12 @@ var RouterHelper = (function () {
         if (_.isArray(routes)) {
             _.each(routes, function (route) {
                 route.route = "" + route.route + formatsPattern;
-                route.pattern = makeRoutePattern(route.route);
+                route.pattern = route.makeRoutePattern(route.route);
             });
         }
         else {
-            routes.route = "" + routes.route + formatsPattern;
-            routes.pattern = makeRoutePattern(routes.route);
+            this.route = "" + this.route + formatsPattern;
+            this.pattern = this.makeRoutePattern(this.route);
         }
     };
     /**
@@ -149,7 +149,7 @@ var RouterHelper = (function () {
         prefix = prefix.startsWith('/') ? prefix : "/" + prefix;
         _.each(routes, function (route) {
             route.route = route.route === '/' ? prefix : prefix + route.route;
-            route.pattern = makeRoutePattern(route.route);
+            route.pattern = this.makeRoutePattern(route.route);
             return route;
         });
     };

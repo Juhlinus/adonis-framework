@@ -12,11 +12,6 @@ import * as _ from 'lodash'
 
 export class RouterHelper {
   private pattern: RegExp
-  private middlewares: Array<string>
-  private domain: string
-  private name: string
-  private verb: Array<string>
-  private route: string
 
   /**
    * construct a new route using path-to-regexp
@@ -28,15 +23,15 @@ export class RouterHelper {
    * @return {Object}
    * @private
    */
-  construct(route: string, verb: Array<string>, handler: any, group: any): Object {
+  construct(route: any, verb: Array<string>, handler: any, group: any): Object {
     route = route.startsWith('/') ? route : `/${route}`
-    this.pattern = this.makeRoutePattern(route)
-    this.middlewares = []
-    this.domain = null
-    this.name = route
+    const pattern = this.makeRoutePattern(route)
+    const middlewares = []
+    const domain = null
+    const name = route
 
-    this.verb = _.isArray(verb) ? verb : [verb] // a route can register for multiple verbs
-    return { route, verb, handler, this.pattern, this.middlewares, name, group, this.domain }
+    verb = _.isArray(verb) ? verb : [verb] // a route can register for multiple verbs
+    return { route, verb, handler, pattern, middlewares, name, group, domain }
   }
 
   /**
@@ -117,13 +112,13 @@ export class RouterHelper {
    * @return {void}
    * @private
    */
-  appendMiddleware(routes: Array<any>|Object, middlewares: Array<any>): void {
+  appendMiddleware(routes: any, middlewares: Array<any>): void {
     if (_.isArray(routes)) {
       _.each(routes, function (route: any) {
         route.middlewares = route.middlewares.concat(middlewares)
       })
     } else {
-      this.middlewares = this.middlewares.concat(middlewares)
+      routes.middlewares = routes.middlewares.concat(middlewares)
     }
   }
 
@@ -135,7 +130,7 @@ export class RouterHelper {
    * @param  {Boolean}   strict
    * @private
    */
-  addFormats(routes: Array<any>|Object, formats: Array<string>, strict: boolean) {
+  addFormats(routes: any, formats: Array<string>, strict: boolean) {
     const flag = strict ? '' : '?'
     const formatsPattern = `:format(.${formats.join('|.')})${flag}`
     if (_.isArray(routes)) {
@@ -144,8 +139,8 @@ export class RouterHelper {
         route.pattern = route.makeRoutePattern(route.route)
       })
     } else {
-      this.route = `${this.route}${formatsPattern}`
-      this.pattern = this.makeRoutePattern(this.route)
+      routes.route = `${routes.route}${formatsPattern}`
+      routes.pattern = routes.makeRoutePattern(routes.route)
     }
   }
 
@@ -180,5 +175,4 @@ export class RouterHelper {
       route.domain = domain
     })
   }
-
 }
