@@ -4,10 +4,10 @@
  * MIT Licensed
 */
 
-import { helpers } from './helpers'
-import { Group }  './group'
-import { Resource }  './resource'
-import { domains }  './domains'
+import { RouterHelper as helper } from './helpers'
+import { Group } from './group'
+import { Resource } from './resource'
+import { domains } from './domains'
 import { Util } from '../../lib/util'
 import * as  _ from 'lodash'
 import { CatLog } from 'cat-log'
@@ -18,8 +18,10 @@ import { CatLog } from 'cat-log'
  */
 export class Route {
   private log: CatLog
+  private util: Util
   private _routes: Array<string>
   private activeGroup: string
+  private resources: Object
 
   constructor() {
     this.log = new CatLog('adonis:framework')
@@ -35,6 +37,8 @@ export class Route {
      * @private
      */
     this.activeGroup = null
+
+    this.resources = this.resource
   }
 
   /**
@@ -134,7 +138,7 @@ export class Route {
    * @public
    */
   render(view: string): Object {
-    var route = this._lastRoute()
+    var route:any = this._lastRoute()
     route.handler = function* (request, response) {
       yield response.sendView(view, { request })
     }
@@ -156,8 +160,8 @@ export class Route {
    *
    * @public
    */
-  Route.post = function (route, handler) {
-    this.route(route, 'POST', handler)
+  post(route:any, handler: any) {
+    this.route(route, ['POST'], handler)
     return this
   }
 
@@ -176,8 +180,8 @@ export class Route {
    *
    * @public
    */
-  Route.put = function (route, handler) {
-    this.route(route, 'PUT', handler)
+  put(route: any, handler: any) {
+    this.route(route, ['PUT'], handler)
     return this
   }
 
@@ -196,8 +200,8 @@ export class Route {
    *
    * @public
    */
-  Route.patch = function (route, handler) {
-    this.route(route, 'PATCH', handler)
+  patch(route: any, handler: any) {
+    this.route(route, ['PATCH'], handler)
     return this
   }
 
@@ -216,8 +220,8 @@ export class Route {
    *
    * @public
    */
-  Route.delete = function (route, handler) {
-    this.route(route, 'DELETE', handler)
+  delete = function (route: any, handler: any) {
+    this.route(route, ['DELETE'], handler)
     return this
   }
 
@@ -236,8 +240,8 @@ export class Route {
    *
    * @public
    */
-  Route.options = function (route, handler) {
-    this.route(route, 'OPTIONS', handler)
+  options = function (route: any, handler: any) {
+    this.route(route, ['OPTIONS'], handler)
     return this
   }
 
@@ -257,7 +261,7 @@ export class Route {
    *
    * @public
    */
-  Route.match = function (verbs, route, handler) {
+  match = function (verbs: Array<string>, route: any, handler: any) {
     verbs = _.map(verbs, function (verb) { return verb.toUpperCase() })
     this.route(route, verbs, handler)
     return this
@@ -278,7 +282,7 @@ export class Route {
    *
    * @public
    */
-  Route.any = function (route, handler) {
+  any(route: any, handler: any) {
     const verbs = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
     this.route(route, verbs, handler)
     return this
@@ -296,8 +300,8 @@ export class Route {
    *
    * @public
    */
-  Route.as = function (name) {
-    let lastRoute = Route._lastRoute()
+  as(name: string) {
+    let lastRoute: any = this._lastRoute()
     lastRoute.name = name
     return this
   }
@@ -330,10 +334,10 @@ export class Route {
    *
    * @public
    */
-  Route.middleware = function () {
+  middleware(): Object {
     helpers.appendMiddleware(
-      Route._lastRoute(),
-      util.spread.apply(this, arguments)
+      this._lastRoute(),
+      this.util.spread.apply(this, arguments)
     )
     return this
   }
@@ -341,9 +345,9 @@ export class Route {
   /**
    * @see module:Route~middleware
    */
-  Route.middlewares = function () {
-    logger.warn('route@middlewares: consider using method middleware, instead of middlewares')
-    Route.middleware.apply(Route, arguments)
+  middlewares() {
+    this.log.warn('route@middlewares: consider using method middleware, instead of middlewares')
+    this.middleware.apply(Route, arguments)
   }
 
   /**
@@ -362,13 +366,13 @@ export class Route {
    * }).prefix('/v1').middleware('auth')
    * @public
    */
-  Route.group = function (name, cb) {
-    activeGroup = name
+  group(name: string, cb: Function): any {
+    this.activeGroup = name
     cb()
-    const groupRoutes = _.filter(routes, function (route) {
-      return route.group === activeGroup
+    const groupRoutes = _.filter(this.routes, function (route: any) {
+      return route.group === this.activeGroup
     })
-    activeGroup = null
+    this.activeGroup = null
     return new Group(groupRoutes)
   }
 
@@ -388,11 +392,11 @@ export class Route {
    *
    * @public
    */
-  Route.resolve = function (urlPath, verb, host) {
+  resolve(urlPath: string, verb: string, host: string): Object {
     if (domains.match(host)) {
       urlPath = `${host}${urlPath}`
     }
-    let resolvedRoute = helpers.returnMatchingRouteToUrl(routes, urlPath, verb)
+    let resolvedRoute = helpers.returnMatchingRouteToUrl(this.routes, urlPath, verb)
     if (_.size(resolvedRoute) === 0) {
       return {}
     }
@@ -415,10 +419,9 @@ export class Route {
    *
    * @public
    */
-  Route.resource = function (name, controller) {
+  resource(name: string, controller: string): any {
     return new Resource(Route, name, controller)
   }
-  Route.resources = Route.resource
 
   /**
    * creates a valid url based on route pattern and parameters and params
@@ -434,8 +437,8 @@ export class Route {
    *
    * @public
    */
-  Route.url = function (pattern, params) {
-    const namedRoute = _.filter(routes, function (route) {
+  url(pattern: string, params: object): string {
+    const namedRoute = _.filter(this.routes, function (route: any) {
       return route.name === pattern
     })[0]
 
@@ -462,9 +465,9 @@ export class Route {
    *
    * @return {Object}
    */
-  Route.getRoute = function (property) {
-    const index = _.findIndex(routes, property)
-    return routes[index]
+  getRoute(property: Object): Object {
+    const index = _.findIndex(this.routes, property)
+    return this.routes[index]
   }
 
   /**
@@ -479,9 +482,9 @@ export class Route {
    *
    * @public
    */
-  Route.remove = function (name) {
-    const index = _.findIndex(routes, { name })
-    routes.splice(index, 1)
+  remove(name: string) {
+    const index = _.findIndex(this.routes, { name })
+    this.routes.splice(index, 1)
   }
 
   /**
@@ -499,8 +502,8 @@ export class Route {
    *
    * @public
    */
-  Route.formats = function (formats, strict) {
-    const lastRoute = Route._lastRoute()
+  formats(formats: Array<string>, strict: boolean) {
+    const lastRoute = this._lastRoute()
     helpers.addFormats(lastRoute, formats, strict)
   }
 }

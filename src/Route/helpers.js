@@ -24,12 +24,12 @@ var RouterHelper = (function () {
      */
     RouterHelper.prototype.construct = function (route, verb, handler, group) {
         route = route.startsWith('/') ? route : "/" + route;
-        this.pattern = this.makeRoutePattern(route);
-        this.middlewares = [];
-        this.domain = null;
-        this.name = route;
-        this.verb = _.isArray(verb) ? verb : [verb]; // a route can register for multiple verbs
-        return { route: route, verb: verb, handler: handler, "this": .pattern, "this": .middlewares, name: name, group: group, "this": .domain };
+        var pattern = this.makeRoutePattern(route);
+        var middlewares = [];
+        var domain = null;
+        var name = route;
+        verb = _.isArray(verb) ? verb : [verb]; // a route can register for multiple verbs
+        return { route: route, verb: verb, handler: handler, pattern: pattern, middlewares: middlewares, name: name, group: group, domain: domain };
     };
     /**
      * make regex pattern for a given route
@@ -111,7 +111,7 @@ var RouterHelper = (function () {
             });
         }
         else {
-            this.middlewares = this.middlewares.concat(middlewares);
+            routes.middlewares = routes.middlewares.concat(middlewares);
         }
     };
     /**
@@ -132,8 +132,8 @@ var RouterHelper = (function () {
             });
         }
         else {
-            this.route = "" + this.route + formatsPattern;
-            this.pattern = this.makeRoutePattern(this.route);
+            routes.route = "" + routes.route + formatsPattern;
+            routes.pattern = routes.makeRoutePattern(routes.route);
         }
     };
     /**
