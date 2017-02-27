@@ -20,7 +20,7 @@ export class Route {
   private log: CatLog
   private util: Util
   private helpers: RouterHelper
-  private _routes: Array<string>
+  private _routes: Array<Object>
   private activeGroup: string
   private resources: Object
 
@@ -50,8 +50,8 @@ export class Route {
    *
    * @public
    */
-  get routes():Array<string> { return this._routes }
-  set routes(value:Array<string>) { this._routes = value }
+  get routes():Array<Object> { return this._routes }
+  set routes(value:Array<Object>) { this._routes = value }
 
   /**
    * clear registered routes and other local variables
@@ -105,7 +105,7 @@ export class Route {
    *
    * @public
    */
-  get(route: string, handler: any): Object {
+  get(route: Array<string>, handler: any): Object {
     this.route(route, ['GET', 'HEAD'], handler)
     return this
   }
@@ -398,10 +398,11 @@ export class Route {
       urlPath = `${host}${urlPath}`
     }
     let resolvedRoute = this.helpers.returnMatchingRouteToUrl(this.routes, urlPath, verb)
-    if (_.size(resolvedRoute) === 0) {
+    if (_.size(resolvedRoute.toString()) === 0) {
       return {}
     }
-    return this.helpers.returnRouteArguments(resolvedRoute, urlPath, host)
+    return this.helpers.returnRouteArguments(resolvedRoute, urlPath)
+    // return this.helpers.returnRouteArguments(resolvedRoute, urlPath, host)
   }
 
   /**
@@ -438,7 +439,7 @@ export class Route {
    *
    * @public
    */
-  url(pattern: Array<string>, params: Object): string {
+  url(pattern: string, params: Object): string {
     const namedRoute = _.filter(this.routes, function (route: any) {
       return route.name === pattern
     })[0]

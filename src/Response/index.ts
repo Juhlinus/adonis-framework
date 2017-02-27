@@ -293,7 +293,7 @@ class Response {
    * response.route('user.profile', {id: 1})
    * @public
    */
-  route (route: Array<string>, data: Object, status: number): void {
+  route (route: string, data: Object, status: number): void {
     const toUrl = routeInstance.url(route, data)
     this.redirect(toUrl, status)
   }
