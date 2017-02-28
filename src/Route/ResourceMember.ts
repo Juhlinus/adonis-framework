@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * adonis-framework
  *
@@ -9,15 +7,21 @@
  * file that was distributed with this source code.
 */
 
-const helpers = require('./helpers')
-const util = require('../../lib/util')
-const CatLog = require('cat-log')
-const logger = new CatLog('adonis:framework')
+import { RouterHelper } from './helpers'
+import { CatLog } from 'cat-log'
+import { Util } from '../../lib/util'
+import { Resource } from './resource'
 
-class ResourceMember {
+class ResourceMember extends Resource {
+  public log: CatLog
+  public helpers: RouterHelper
 
-  constructor (route) {
-    this.route = route
+  constructor (route: any) {
+    super(route, '', '')
+
+    this.log = super.log
+    this.route = super.route
+    this.helpers = super.helpers
   }
 
   /**
@@ -30,8 +34,8 @@ class ResourceMember {
    *
    * @public
    */
-  bindAction (action) {
-    this.route.handler = action
+  bindAction (action: string): Object {
+    super.handler = action
     return this
   }
 
@@ -39,7 +43,7 @@ class ResourceMember {
    * @see this.middleware
    */
   middlewares () {
-    logger.warn('member@middlewares: consider using method middleware, instead of middlewares')
+    this.log.warn('member@middlewares: consider using method middleware, instead of middlewares')
     return this.middleware.apply(this, arguments)
   }
 
@@ -50,10 +54,10 @@ class ResourceMember {
    *
    * @public
    */
-  middleware () {
-    helpers.appendMiddleware(
+  middleware (): Object {
+    this.helpers.appendMiddleware(
       this.route,
-      util.spread.apply(this, arguments)
+      this.util.spread.apply(this, arguments)
     )
     return this
   }
@@ -67,8 +71,8 @@ class ResourceMember {
    *
    * @public
    */
-  as (name) {
-    this.route.name = name
+  as (name: string): this {
+    // this.route.name = name
     return this
   }
 
@@ -79,10 +83,7 @@ class ResourceMember {
    *
    * @public
    */
-  toJSON () {
+  toJSON (): Object {
     return this.route
   }
-
 }
-
-module.exports = ResourceMember
