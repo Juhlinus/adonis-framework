@@ -423,7 +423,7 @@ export class Route {
    * @public
    */
   resource(name: string, controller: string): any {
-    return new Resource(Route, name, controller)
+    return new Resource(this, name, controller)
   }
 
   /**

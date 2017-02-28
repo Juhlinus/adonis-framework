@@ -1,7 +1,7 @@
 import * as  _ from 'lodash'
-import { RouterHelper } from './helpers';
-import { CatLog } from 'cat-log';
-import { Util } from '../../lib/util';
+import { RouterHelper } from './helpers'
+import { CatLog } from 'cat-log'
+import { Util } from '../../lib/util'
 import { Route } from './index'
 import { ResourceMember } from './ResourceMember'
 import { ResourceCollection } from './ResourceCollection'
@@ -12,18 +12,18 @@ import { RuntimeException, InvalidArgumentException, HttpException } from '../Ex
  * @class
  * @alias Route.Resource
  */
-class Resource extends Route {
+export class Resource extends Route {
   public helpers: RouterHelper
   public log: CatLog
   public util: Util
   private ResourceMember: ResourceMember
   private ResourceCollection: ResourceCollection
   private pattern: string
-  private handler: string
+  public handler: string
   protected _routes: Array<Object>
   private basename: string
 
-  constructor(RouteHelper: RouterHelper, pattern: string, handler: any) {
+  constructor(RouterHelper: RouterHelper, pattern: string, handler: any) {
     super()
     this.log = super.log
     this.util = super.util
@@ -328,7 +328,7 @@ class Resource extends Route {
    *
    * @public
    */
-  toJSON(): Array<Object> {
+  toJSON(): Array<Object>|Object {
     return this.routes
   }
 
